@@ -1,0 +1,39 @@
+name: DevSync Daily Automation
+
+on:
+  schedule:
+    # Runs at 05:30 UTC every single day. 
+    # (Specific hours and minutes are defined, no wildcards for the time)
+    - cron: '30 5 * * *' 
+  
+  # This is crucial: It allows you to run the action manually right now 
+  # without waiting for 05:30 UTC to roll around.
+  workflow_dispatch: 
+
+jobs:
+  daily-commit:
+    runs-on: ubuntu-latest
+    
+    # This block grants the GitHub Action bot the security clearance 
+    # required to push code changes back into your repository.
+    permissions:
+      contents: write 
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Your required step containing your exact email
+      - name: Update daily tracking log for 23f3001800@ds.study.iitm.ac.in
+        run: |
+          echo "Automated repository check completed on $(date)" >> activity_tracker.txt
+
+      - name: Commit and Push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add activity_tracker.txt
+          
+          # The || echo ensures the workflow doesn't crash if there's nothing new to commit
+          git commit -m "chore: automated daily activity update" || echo "No changes to commit"
+          git push
